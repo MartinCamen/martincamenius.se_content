@@ -11,24 +11,24 @@
  */
 
 export type Item = {
-	/** The last part of the address: <base-url>/s/<slug> */
-	slug: string;
-	/** Shown to screen readers on the card. */
-	title: string;
-	/** Any hex colour. It will be darkened until it scans, see `colour.ts`. */
-	colour: string;
-	active: boolean;
+  /** The last part of the address: <base-url>/s/<slug> */
+  slug: string;
+  /** Shown to screen readers on the card. */
+  title: string;
+  /** Any hex colour. It will be darkened until it scans, see `colour.ts`. */
+  colour: string;
+  active: boolean;
 };
 
 const ITEMS: Item[] = [
-	{ slug: "first-item", title: "First item", colour: "#e0592f", active: true },
-	{ slug: "second-item", title: "Second item", colour: "#2f7d5c", active: true },
-	{ slug: "third-item", title: "Third item", colour: "#c98a0e", active: false },
-	{ slug: "fourth-item", title: "Fourth item", colour: "#2c6e9b", active: true },
+  { slug: "first-item", title: "First item", colour: "#e0592f", active: true },
+  { slug: "second-item", title: "Second item", colour: "#2f7d5c", active: true },
+  { slug: "third-item", title: "Third item", colour: "#c98a0e", active: false },
+  { slug: "fourth-item", title: "Fourth item", colour: "#2c6e9b", active: true },
 ];
 
 export const ACTIVE_ITEMS = ITEMS.filter((item) => item.active).map(
-	(item, index) => ({ ...item, number: index + 1 }),
+  (item, index) => ({ ...item, number: index + 1 }),
 );
 
 export type NumberedItem = (typeof ACTIVE_ITEMS)[number];

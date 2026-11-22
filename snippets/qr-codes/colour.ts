@@ -20,46 +20,46 @@ export const DISPLAY = "'Your Font', ui-rounded, 'Segoe UI', system-ui, sans-ser
  * reads as "the orange one".
  */
 export function darkenTo(hex: string, target: number) {
-	const [r, g, b] = channels(hex);
+  const [r, g, b] = channels(hex);
 
-	for (let k = 1; k > 0; k -= 0.01) {
-		const shade = rgb(r * k, g * k, b * k);
-		if (contrastRatio(shade, PAPER) >= target) {
-			return shade;
-		}
-	}
+  for (let k = 1; k > 0; k -= 0.01) {
+    const shade = rgb(r * k, g * k, b * k);
+    if (contrastRatio(shade, PAPER) >= target) {
+      return shade;
+    }
+  }
 
-	return "#000000";
+  return "#000000";
 }
 
 /** WCAG contrast ratio between two hex colours, from 1:1 up to 21:1. */
 export function contrastRatio(a: string, b: string) {
-	const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-	return (light + 0.05) / (dark + 0.05);
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
 }
 
 /** WCAG relative luminance. */
 function luminance(hex: string) {
-	const [r, g, b] = channels(hex).map((c) => {
-		const channel = c / 255;
-		return channel <= 0.040_45
-			? channel / 12.92
-			: ((channel + 0.055) / 1.055) ** 2.4;
-	});
+  const [r, g, b] = channels(hex).map((c) => {
+    const channel = c / 255;
+    return channel <= 0.040_45
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4;
+  });
 
-	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 function channels(hex: string): [number, number, number] {
-	const n = Number.parseInt(hex.slice(1), 16);
-	return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const n = Number.parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
 function rgb(r: number, g: number, b: number) {
-	const hex = (c: number) =>
-		Math.round(Math.min(255, Math.max(0, c)))
-			.toString(16)
-			.padStart(2, "0");
+  const hex = (c: number) =>
+    Math.round(Math.min(255, Math.max(0, c)))
+      .toString(16)
+      .padStart(2, "0");
 
-	return `#${hex(r)}${hex(g)}${hex(b)}`;
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
 }

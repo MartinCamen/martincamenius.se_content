@@ -17,14 +17,14 @@ npx tsx qr.ts --base-url https://example.com
 
 Cards land in `qr/`. Open `qr/index.html` and print at 100%.
 
-| Flag | What it does | Default |
-|---|---|---|
-| `--base-url <url>` | where the site lives, codes point at `<url>/s/<slug>` | required |
-| `--out <dir>` | where the cards end up | `qr` |
-| `--centre <text>` | text in the middle of the code, `{n}` = the number, `""` for none | `#{n}` |
-| `--contrast <n>` | minimum contrast against the paper | `5` |
-| `--mono` | plain dark codes instead of each item's colour | off |
-| `--per-page <1\|4>` | cards per A4 page on the print sheet | `4` |
+| Flag                | What it does                                                      | Default  |
+|---------------------|-------------------------------------------------------------------|----------|
+| `--base-url <url>`  | where the site lives, codes point at `<url>/s/<slug>`             | required |
+| `--out <dir>`       | where the cards end up                                            | `qr`     |
+| `--centre <text>`   | text in the middle of the code, `{n}` = the number, `""` for none | `#{n}`   |
+| `--contrast <n>`    | minimum contrast against the paper                                | `5`      |
+| `--mono`            | plain dark codes instead of each item's colour                    | off      |
+| `--per-page <1\|4>` | cards per A4 page on the print sheet                              | `4`      |
 
 ## The files
 
