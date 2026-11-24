@@ -1,0 +1,18 @@
+---
+# Packages that only change in the monthly window, because upgrading them restarts something that serves traffic.
+unattended_upgrades_held_packages:
+  - "^mysql-"
+  - "^mariadb-"
+  - "^php"
+  - "^nginx"
+  - "^redis-"
+  - "^supervisor$"
+# Services needrestart must never restart by itself (matched as regular expressions).
+unattended_upgrades_held_services:
+  - "^mysql"
+  - "^mariadb"
+  - "^php.*-fpm"
+  - "^nginx"
+  - "^redis"
+  - "^supervisor"
+unattended_upgrades_time: "04:30"

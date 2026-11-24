@@ -1,0 +1,5 @@
+---
+# Ansible only loads .yml, .yaml and .json from host_vars, so this file is never read.
+# Create the real one with `ansible-vault create inventory/host_vars/web-1/vault.yml`
+# and paste these keys, so a plaintext copy never exists on disk.
+ansible_become_password: ""

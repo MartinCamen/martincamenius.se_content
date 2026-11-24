@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# 'l' should mean "only list the services that need a restart". On Ubuntu 24.04
+# and later, unattended upgrades restart them anyway (Launchpad bug 2068543), so
+# each service that serves traffic is also excluded by name.
+$nrconf{restart} = 'l';
+{% for pattern in unattended_upgrades_held_services %}
+$nrconf{override_rc}{qr({{ pattern }})} = 0;
+{% endfor %}

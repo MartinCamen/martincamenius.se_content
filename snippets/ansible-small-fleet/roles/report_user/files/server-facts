@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+"""Print read-only facts about this server as JSON. Takes no arguments, writes nothing."""
+
+import json
+import platform
+import re
+import subprocess
+from pathlib import Path
+
+# The packages worth knowing the version of when the next big security notice lands.
+TRACKED = re.compile(r"^(php[0-9.]+-fpm|mysql-server-[0-9.]+|mariadb-server|nginx|redis-server|nodejs|supervisor)$")
+
+
+def run(*command: str) -> str:
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    return result.stdout
+
+
+def os_release() -> dict:
+    fields = {}
+    for line in Path("/etc/os-release").read_text().splitlines():
+        key, _, value = line.partition("=")
+        fields[key] = value.strip('"')
+    return fields
+
+
+def tracked_packages() -> dict:
+    lines = run("dpkg-query", "--show", "--showformat", "${Package}\t${Version}\t${db:Status-Status}\n")
+    packages = {}
+    for line in lines.splitlines():
+        name, version, status = line.split("\t")
+        if status == "installed" and TRACKED.match(name):
+            packages[name] = version
+    return packages
+
+
+def pending_upgrades() -> dict:
+    lines = run("apt-get", "--simulate", "--quiet", "upgrade").splitlines()
+    installs = [line for line in lines if line.startswith("Inst ")]
+    security = [line for line in installs if "-security" in line]
+    return {"total": len(installs), "security": len(security)}
+
+
+def services_needing_restart() -> list:
+    # needrestart -b prints machine-readable lines; -r l lists without restarting.
+    output = run("needrestart", "-b", "-r", "l")
+    return sorted(line.split(": ", 1)[1] for line in output.splitlines() if line.startswith("NEEDRESTART-SVC:"))
+
+
+facts = {
+    "os": os_release().get("PRETTY_NAME"),
+    "kernel": platform.release(),
+    "reboot_required": Path("/var/run/reboot-required").exists(),
+    "pending_upgrades": pending_upgrades(),
+    "services_needing_restart": services_needing_restart(),
+    "packages": tracked_packages(),
+}
+
+print(json.dumps(facts, indent=2, sort_keys=True))

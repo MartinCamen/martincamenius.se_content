@@ -1,0 +1,21 @@
+---
+# The monthly patch window. Standard servers go first, then critical ones, one at a time,
+# and the first failure stops the run. Every step that can cause downtime waits for a yes.
+# Without a terminal every answer is empty, and empty means no.
+- name: Patch the standard servers
+  hosts: standard:&self_maintained
+  serial: 1
+  max_fail_percentage: 0
+  become: true
+  tasks:
+    - name: Patch this server
+      ansible.builtin.include_tasks: tasks/patch-host.yml
+
+- name: Patch the critical servers
+  hosts: critical:&self_maintained
+  serial: 1
+  max_fail_percentage: 0
+  become: true
+  tasks:
+    - name: Patch this server
+      ansible.builtin.include_tasks: tasks/patch-host.yml

@@ -1,0 +1,38 @@
+---
+# Read-only facts from every server, one JSON file per host in facts/.
+# Runs as the report user, whose only sudo right is the facts script, so it needs no vault.
+- name: Collect server facts
+  hosts: self_maintained
+  remote_user: ansible-report
+  gather_facts: false
+  vars:
+    facts_directory: "{{ playbook_dir }}/../facts"
+  tasks:
+    - name: Run the facts script
+      # Plain sudo, not become: the sudoers rule allows this exact command and nothing else.
+      ansible.builtin.command: sudo --non-interactive /usr/local/sbin/server-facts  # noqa: command-instead-of-module
+      register: facts_output
+      changed_when: false
+
+    - name: Create the facts directory on the controller
+      ansible.builtin.file:
+        path: "{{ facts_directory }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+
+    - name: Write the facts to the controller
+      ansible.builtin.copy:
+        content: "{{ facts_output.stdout | from_json | to_nice_json }}\n"
+        dest: "{{ facts_directory }}/{{ inventory_hostname }}.json"
+        mode: "0644"
+      delegate_to: localhost
+
+    - name: Show what each server runs
+      ansible.builtin.debug:
+        msg: >-
+          {{ facts.os }}, {{ facts.pending_upgrades.security }} security updates pending,
+          reboot required: {{ facts.reboot_required }},
+          {{ facts.packages | dict2items | map('join', ' ') | join(', ') or 'no tracked packages' }}
+      vars:
+        facts: "{{ facts_output.stdout | from_json }}"

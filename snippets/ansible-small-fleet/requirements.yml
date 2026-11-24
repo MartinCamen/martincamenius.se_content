@@ -1,0 +1,5 @@
+---
+# Only needed for the Docker test in test/.
+collections:
+  - name: community.docker
+    version: ">=4.0.0"

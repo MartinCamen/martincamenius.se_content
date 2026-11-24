@@ -1,0 +1,4 @@
+---
+# The report user's public key, and the only addresses it may log in from (your laptop, a CI runner).
+report_user_public_key: ""
+report_user_source_addresses: []

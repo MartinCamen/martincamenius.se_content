@@ -1,0 +1,17 @@
+---
+# The same groups as the real inventory, so the same plays reach the container.
+all:
+  children:
+    self_maintained:
+      children:
+        standard:
+          hosts:
+            test-server:
+              ansible_connection: community.docker.docker
+              ansible_host: ansible-test-server
+        critical:
+          hosts: {}
+  vars:
+    services: []
+    report_user_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyOnlyForTheTest test
+    report_user_source_addresses: [127.0.0.1]
