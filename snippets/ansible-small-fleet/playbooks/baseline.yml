@@ -1,0 +1,13 @@
+---
+# The same baseline on every server you patch yourself. Run it with --check --diff first,
+# then for real, then once more: the second run must report changed=0.
+- name: Apply the server baseline
+  hosts: self_maintained
+  become: true
+  roles:
+    - role: unattended_upgrades
+      tags: unattended_upgrades
+    - role: kernel_crash_recovery
+      tags: kernel_crash_recovery
+    - role: report_user
+      tags: report_user

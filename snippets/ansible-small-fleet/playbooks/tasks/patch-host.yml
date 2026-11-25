@@ -1,0 +1,110 @@
+---
+- name: Ask about the backup
+  ansible.builtin.pause:
+    prompt: "{{ inventory_hostname }}: is there a fresh backup? [yes/no]"
+  register: patch_backup
+
+- name: Stop without a backup
+  ansible.builtin.assert:
+    that: patch_backup.user_input | trim | lower == 'yes'
+    fail_msg: No backup, no patching. The run stops here.
+    quiet: true
+
+- name: List the pending upgrades
+  ansible.builtin.apt:
+    update_cache: true
+  changed_when: false
+
+- name: Read the pending upgrades
+  ansible.builtin.command: apt list --upgradable
+  register: patch_pending
+  changed_when: false
+
+- name: Ask whether to upgrade
+  ansible.builtin.pause:
+    prompt: |-
+      {{ patch_pending.stdout_lines[1:] | join('\n') }}
+      {{ inventory_hostname }}: upgrade these now, or skip this server? [upgrade/skip]
+  register: patch_upgrade
+
+- name: Skip this server
+  ansible.builtin.meta: end_host
+  when: patch_upgrade.user_input | trim | lower == 'skip'
+
+- name: Stop on anything but upgrade
+  ansible.builtin.assert:
+    that: patch_upgrade.user_input | trim | lower == 'upgrade'
+    fail_msg: Answer upgrade or skip.
+    quiet: true
+
+- name: Read the installed packages
+  ansible.builtin.package_facts:
+
+- name: Upgrade with MySQL held back
+  block:
+    - name: Hold MySQL, so it gets a step of its own later
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop: "{{ ansible_facts.packages | list | select('match', '^mysql-server') }}"
+      when: "'mysql' in services"
+
+    - name: Upgrade the rest
+      ansible.builtin.apt:
+        upgrade: safe
+      environment:
+        NEEDRESTART_SUSPEND: "1"
+
+  always:
+    - name: Release MySQL again, whatever happened above
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: install
+      loop: "{{ ansible_facts.packages | list | select('match', '^mysql-server') }}"
+      when: "'mysql' in services"
+
+- name: List the services that need a restart
+  ansible.builtin.command: needrestart -b -r l
+  register: patch_needrestart
+  changed_when: false
+
+- name: Ask which services to restart
+  ansible.builtin.pause:
+    prompt: |-
+      Needs a restart: {{ patch_restartable | join(' ') or 'nothing' }}
+      {{ inventory_hostname }}: which ones should restart now? (space separated, empty for none)
+  vars:
+    patch_restartable: "{{ patch_needrestart.stdout_lines | select('match', '^NEEDRESTART-SVC:') | map('split', ': ') | map('last') | list }}"
+  register: patch_restarts
+
+- name: Restart the chosen services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: restarted
+  loop: "{{ patch_restarts.user_input | split }}"
+
+- name: Check whether a reboot is needed
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: patch_reboot_required
+
+- name: Ask about the reboot
+  ansible.builtin.pause:
+    prompt: "{{ inventory_hostname }}: a reboot is needed. Reboot now? [yes/no]"
+  register: patch_reboot
+  when: patch_reboot_required.stat.exists
+
+- name: Reboot
+  ansible.builtin.reboot:
+  when: patch_reboot.user_input | default('') | trim | lower == 'yes'
+
+- name: Ask before moving on
+  ansible.builtin.pause:
+    prompt: "{{ inventory_hostname }}: do the sites answer and the queues run? Go on to the next server? [yes/no]"
+  register: patch_next
+
+- name: Stop the run if something looks wrong
+  ansible.builtin.assert:
+    that: patch_next.user_input | trim | lower == 'yes'
+    fail_msg: Stopped after {{ inventory_hostname }}. The servers after it are untouched.
+    quiet: true

@@ -1,0 +1,53 @@
+---
+- name: Refuse to run without a key and source addresses
+  ansible.builtin.assert:
+    that:
+      - report_user_public_key | length > 0
+      - report_user_source_addresses | length > 0
+    fail_msg: Set report_user_public_key and report_user_source_addresses first.
+    quiet: true
+
+- name: Create the report user, with no password to log in with
+  ansible.builtin.user:
+    name: "{{ report_user_name }}"
+    system: true
+    shell: /bin/sh
+    home: "{{ report_user_home }}"
+    password_lock: true
+
+- name: Create the SSH directory, owned by root so the user can't swap the key
+  ansible.builtin.file:
+    path: "{{ report_user_home }}/.ssh"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Accept the key only from the listed addresses, with no forwarding and no terminal
+  ansible.builtin.copy:
+    content: >-
+      from="{{ report_user_source_addresses | join(',') }}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty
+      {{ report_user_public_key }}
+    dest: "{{ report_user_home }}/.ssh/authorized_keys"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install the facts script
+  ansible.builtin.copy:
+    src: server-facts
+    dest: "{{ report_user_facts_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Let the report user run that one script as root, with no arguments, and nothing else
+  ansible.builtin.copy:
+    content: |
+      {{ report_user_name }} ALL=(root) NOPASSWD: {{ report_user_facts_path }} ""
+    dest: /etc/sudoers.d/report-user
+    owner: root
+    group: root
+    mode: "0440"
+    # A broken sudoers file can lock you out of sudo. visudo checks it before it's put in place.
+    validate: visudo -cf %s

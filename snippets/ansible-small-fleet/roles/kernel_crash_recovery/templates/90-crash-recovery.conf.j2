@@ -1,0 +1,4 @@
+# {{ ansible_managed }}
+{% for key, value in kernel_crash_recovery_settings.items() %}
+{{ key }} = {{ value }}
+{% endfor %}

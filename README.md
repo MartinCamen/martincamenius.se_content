@@ -11,3 +11,4 @@ folder can be copied and run on its own.
 | Snippet                         | What it is                                              |
 |---------------------------------|---------------------------------------------------------|
 | [`qr-codes`](snippets/qr-codes) | Printable, coloured QR code cards generated from a list |
+| [`ansible-small-fleet`](snippets/ansible-small-fleet) | A small Ansible setup: safe nightly updates, server facts, monthly patching |

@@ -1,0 +1,6 @@
+---
+# A container shares its host's kernel and can't change these, so it only gets the file.
+- name: Load the kernel crash recovery settings
+  ansible.builtin.command: sysctl --load /etc/sysctl.d/90-crash-recovery.conf
+  changed_when: true
+  when: ansible_facts['virtualization_type'] not in ['docker', 'container', 'podman', 'lxc']

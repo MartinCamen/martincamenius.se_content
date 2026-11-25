@@ -1,0 +1,7 @@
+---
+report_user_name: ansible-report
+report_user_home: /home/ansible-report
+report_user_facts_path: /usr/local/sbin/server-facts
+# Set these in inventory/group_vars/all/vars.yml. The role refuses to run while they are empty.
+report_user_public_key: ""
+report_user_source_addresses: []

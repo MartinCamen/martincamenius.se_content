@@ -1,0 +1,6 @@
+---
+# Turn a kernel oops into a panic, and reboot 10 seconds after a panic.
+# Without this, a crashed kernel can leave the server powered on but deaf to HTTP and SSH.
+kernel_crash_recovery_settings:
+  kernel.panic_on_oops: 1
+  kernel.panic: 10

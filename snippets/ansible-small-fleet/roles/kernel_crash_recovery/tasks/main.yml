@@ -1,0 +1,9 @@
+---
+- name: Write the kernel crash recovery settings
+  ansible.builtin.template:
+    src: 90-crash-recovery.conf.j2
+    dest: /etc/sysctl.d/90-crash-recovery.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Load the kernel crash recovery settings
